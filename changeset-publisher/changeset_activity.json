@@ -2,7 +2,7 @@
     "actor": {
       "objectType" : "person",
       "id": "#{user_id}",
-      "display_name": "Paweł Paprota"
+      "display_name": "#{user_name}"
     },
     "verb": "post",
     "object" : {

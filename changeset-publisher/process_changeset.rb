@@ -22,53 +22,26 @@ class ChangesetProcessor
     # Prepare JSON based on the template.
     changeset_id = changeset_data[0]['changeset_id']
     user_id = changeset_data[0]['user_id']
-    title = "Changeset #{changeset_id}"
-    content = "Changeset #{changeset_id}"
-    json = eval('"' + File.open('changeset_activity.json', 'rb').read.gsub('"', '\"') + '"')
+    user_name = changeset_data[0]['user_name']
+    title = "#{user_name} added changeset #{changeset_id}"
+    content = "#{user_name} added changeset #{changeset_id}"
+    json = eval_file('changeset_activity.json', binding)
+    puts json
 
     # Send it to the server.
     response = self.class.post('/activities', {:body => {:json => json}})
     puts response.inspect
   end
 
-  def get_changeset(id)
-    sql = "
-SELECT
-  'N' AS element_type,
-  changeset_id,
-  user_id,
-  tstamp,
-  tags,
-  geom
-FROM nodes
-WHERE changeset_id = #{id}
-
-UNION
-
-SELECT
-  'R' AS element_type,
-  changeset_id,
-  user_id,
-  tstamp,
-  tags,
-  NULL AS geom
-FROM relations
-WHERE changeset_id = #{id}
-
-UNION
-
-SELECT
-  'W' AS element_type,
-  changeset_id,
-  user_id,
-  tstamp,
-  tags,
-  linestring AS geom
-FROM ways
-WHERE changeset_id = #{id}
-    "
-
+  def get_changeset(changeset_id)
+    sql = eval_file('get_changeset.sql', binding)
     @conn.query(sql).collect {|row| Hash[row]}
+  end
+
+  protected
+
+  def eval_file(file_name, b)
+    eval('"' + File.open(file_name, 'rb').read.gsub('"', '\"') + '"', b)
   end
 end
 

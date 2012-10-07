@@ -1,7 +1,12 @@
 require './config'
+require 'httparty'
 require 'pg'
 
 class ChangesetProcessor
+  include HTTParty
+
+  base_uri $config['activity_server_url']
+
   attr_accessor :conn
 
   def initialize
@@ -14,12 +19,16 @@ class ChangesetProcessor
   end
 
   def generate_activities(changeset_data)
+    # Prepare JSON based on the template.
     changeset_id = changeset_data[0]['changeset_id']
     user_id = changeset_data[0]['user_id']
     title = "Changeset #{changeset_id}"
     content = "Changeset #{changeset_id}"
     json = eval('"' + File.open('changeset_activity.json', 'rb').read.gsub('"', '\"') + '"')
-    puts json
+
+    # Send it to the server.
+    response = self.class.post('/activities', {:body => {:json => json}})
+    puts response.inspect
   end
 
   def get_changeset(id)

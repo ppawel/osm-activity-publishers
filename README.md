@@ -1,4 +1,6 @@
-osm-activity-publishers
-=======================
+OpenStreetMap Activity Publishers
+=================================
 
-Applications that send data to the osm-activity-server.
+Applications that send data to the OpenStreetMap Activity Server.
+
+See https://github.com/ppawel/osm-activity-server for more information about the whole, project, server API etc.

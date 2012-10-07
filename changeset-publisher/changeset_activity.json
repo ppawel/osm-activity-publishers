@@ -1,0 +1,22 @@
+{
+    "actor": {
+      "objectType" : "person",
+      "id": "#{user_id}",
+      "display_name": "Paweł Paprota"
+    },
+    "verb": "post",
+    "object" : {
+      "objectType" : "diaryEntry",
+      "url": "http://www.openstreetmap.org/browse/changeset/#{changeset_id}",
+      "id": "#{changeset_id}"
+    },
+    "target" : {
+      "objectType": "diary",
+      "url": "http://www.openstreetmap.org/"
+    },
+    "title" : "#{title}",
+    "content" : "#{content}",
+    "to" : [
+      {"objectType": "userGroup", "id": "all"}
+    ]
+}

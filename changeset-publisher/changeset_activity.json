@@ -4,14 +4,14 @@
       "id": "#{user_id}",
       "display_name": "#{user_name}"
     },
-    "verb": "post",
+    "verb": "map",
     "object" : {
-      "objectType" : "diaryEntry",
-      "url": "http://www.openstreetmap.org/browse/changeset/#{changeset_id}",
-      "id": "#{changeset_id}"
+      "objectType" : "changeset",
+      "id": "#{changeset_id}",
+      "bbox": ""
     },
     "target" : {
-      "objectType": "diary",
+      "objectType": "website",
       "url": "http://www.openstreetmap.org/"
     },
     "title" : "#{title}",

@@ -3,13 +3,24 @@ Changeset Activity Publisher
 
 This publisher interfaces with the OpenStreetMap Activity Server and publishes changeset activities.
 
+Requirements
+============
+
+* Activity Server instance up and running
+* OSM database in PostGIS (snapshot) schema (temporary requirement, may change in the future!)
+
+Configuration
+=============
+
+The `config.rb` file must be used to configure database connection parameters and the URL to the activity server instance.
+
 Usage
 =====
 
 Processing a single changeset
 -----------------------------
 
-`process_changeset.rb` script can be used to fetch changeset data from the database by id and generate activity based on that data. The activity JSON document is then sent to the activity server.
+The `process_changeset.rb` script can be used to fetch changeset data from the database by id and generate activity based on that data. The activity JSON document is then sent to the activity server.
 
 The script can be executed as follows:
 

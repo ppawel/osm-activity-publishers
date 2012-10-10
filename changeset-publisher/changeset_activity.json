@@ -1,4 +1,5 @@
 {
+    "published": "#{changeset_tstamp}",
     "actor": {
       "objectType" : "person",
       "id": "#{user_id}",
@@ -8,7 +9,8 @@
     "object" : {
       "objectType" : "changeset",
       "id": "#{changeset_id}",
-      "bbox": ""
+      "bbox": "",
+      "geom": "#{geom}"
     },
     "target" : {
       "objectType": "website",
@@ -17,6 +19,6 @@
     "title" : "#{title}",
     "content" : "#{content}",
     "to" : [
-      {"objectType": "userGroup", "id": "all"}
+      {"objectType": "userGroup", "id": "friends"}
     ]
 }

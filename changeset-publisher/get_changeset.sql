@@ -14,7 +14,7 @@ FROM
     user_id,
     tstamp,
     tags,
-    geom
+    (SELECT ST_Union((g.gdump).geom) FROM (SELECT ST_DumpPoints(geom) AS gdump) AS g) AS geom
   FROM nodes
   WHERE changeset_id = #{changeset_id}
 
@@ -38,7 +38,7 @@ FROM
     user_id,
     tstamp,
     tags,
-    linestring AS geom
+    (SELECT ST_Union((g.gdump).geom) FROM (SELECT ST_DumpPoints(linestring) AS gdump) AS g) AS geom
   FROM ways
   WHERE changeset_id = #{changeset_id}
 ) data

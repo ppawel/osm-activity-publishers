@@ -85,6 +85,10 @@ def feature_grouper(coll):
     # rewritten
     grouped = []
     while coll:
+        if len(coll[0][1]) == 0:
+            coll.remove(coll[0])
+            continue
+
         feature = coll[0][1][0]
         eles = [f[0] for f in coll if feature in f[1]]
         grouped.append( (eles, feature) )

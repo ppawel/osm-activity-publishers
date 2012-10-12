@@ -1,4 +1,5 @@
 require './config'
+require './osc_parser'
 
 require 'httparty'
 require 'pg'
@@ -19,18 +20,10 @@ class ChangesetProcessor
       :password => $config['postgis_db_password'])
   end
 
-  def generate_activities(changeset_data)
+  def generate_activities(changeset_id, changeset_tstamp, user_id, user_name)
     # Prepare JSON based on the template.
-    count_nodes = changeset_data.select {|row| row['element_type'] == 'N'}.size
-    count_ways = changeset_data.select {|row| row['element_type'] == 'W'}.size
-    count_relations = changeset_data.select {|row| row['element_type'] == 'R'}.size
-
-    changeset_id = changeset_data[0]['changeset_id']
-    changeset_tstamp = changeset_data[0]['tstamp']
-    user_id = changeset_data[0]['user_id']
-    user_name = changeset_data[0]['user_name']
     title = "#{user_name} added changeset #{changeset_id}"
-    content = "nodes: #{count_nodes}, ways: #{count_ways}, relations: #{count_relations}"
+    content = get_description_from_changemonger(changeset_id)
     geom = get_changeset_geom(changeset_id)
 
     json = eval_file('changeset_activity.json', binding)
@@ -57,6 +50,28 @@ class ChangesetProcessor
   def eval_file(file_name, b)
     eval('"' + File.open(file_name, 'rb').read.gsub('"', '\"') + '"', b)
   end
+
+  def get_description_from_changemonger(changeset_id)
+    IO.popen("./run_changemonger.sh #{changeset_id}") {|f| f.read}
+  end
+end
+
+def dump_xml_to_tmp_file(changeset_id, xml)
+  tmp_file_name = "/tmp/_#{changeset_id}.osc"
+  f = File.open(tmp_file_name, 'wb')
+  f.write(xml)
+  f.close
+end
+
+def remove_tmp_file(changeset_id)
+  tmp_file_name = "/tmp/_#{changeset_id}.osc"
+  File.delete(tmp_file_name)
+end
+
+# Hacky!
+def get_from_xml(xml, field_name)
+  m = xml.match("#{field_name}\=\"(.*?)\"")
+  $1
 end
 
 # Main part of this script...
@@ -66,6 +81,13 @@ if ARGV.size != 1
   exit
 end
 
-#processor = ChangesetProcessor.new
-#changeset_data =  processor.get_changeset(changeset_id)
-#processor.generate_activities(changeset_data)
+processor = ChangesetProcessor.new
+
+parse_osc(ARGV[0]) do |changeset_id, xml|
+  puts "Processing changeset #{changeset_id}..."
+
+  dump_xml_to_tmp_file(changeset_id, xml)
+  processor.generate_activities(changeset_id, get_from_xml(xml, 'timestamp'), get_from_xml(xml, 'uid'),
+    get_from_xml(xml, 'user'))
+  remove_tmp_file(changeset_id)
+end

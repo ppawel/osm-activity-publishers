@@ -25,7 +25,6 @@ import logging
 
 logging.basicConfig(level=logging.DEBUG)
 
-# Magic directory that contains OsmChange files named <changeset_id>.osc - one changeset per file.
 CHANGESETS_DIR = '/home/ppawel/src/changesets/'
 
 try:
@@ -65,7 +64,7 @@ def getChangeset(id):
     return createChangesetXml(id)
 
 def getChange(id):
-    return open(CHANGESETS_DIR + id + ".osc").read()
+    return open("/tmp/_" + str(id) + ".osc").read()
 
 def getWaysforNode(id):
     id = str(id)
@@ -125,7 +124,7 @@ def createRelationsXml(relation_rows):
     for row in relation_rows:
       if id != row['relation_id']:
         appendWayXml(newdoc, newdoc.documentElement, way_rows)
-
+    print newdoc.toprettyxml(encoding = 'utf-8')
     return newdoc.toprettyxml(encoding = 'utf-8')
 
 def createChangesetXml(id):

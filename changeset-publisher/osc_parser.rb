@@ -2,7 +2,7 @@ require 'xml'
 
 def parse_osc(file_name)
   changesets = {}
-  reader = XML::Reader.file(ARGV[0])
+  reader = XML::Reader.file(file_name)
 
   while reader.read do
     if ['create', 'modify', 'delete'].include?(reader.name)

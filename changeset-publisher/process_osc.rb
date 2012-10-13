@@ -21,17 +21,23 @@ class ChangesetProcessor
   end
 
   def generate_activities(changeset_id, changeset_tstamp, user_id, user_name)
+    geom = get_changeset_geom(changeset_id)
+
+    if geom.nil?
+      puts " No geometry for the changeset found in the database, ignoring"
+      return
+    end
+
     # Prepare JSON based on the template.
     title = "#{user_name} added changeset #{changeset_id}"
     content = get_description_from_changemonger(changeset_id)
-    geom = get_changeset_geom(changeset_id)
 
     json = eval_file('changeset_activity.json', binding)
-    puts json
+    #puts json
 
     # Send it to the server.
     response = self.class.post('/activities', {:body => {:json => json}})
-    puts response.inspect
+    #puts response.inspect
   end
 
   def get_changeset(changeset_id)
@@ -79,6 +85,16 @@ def get_from_xml(xml, field_name)
   $1
 end
 
+def log_time(name)
+  before = Time.now
+  if block_given?
+    yield
+  end
+  end_time = Time.now
+  puts "#{name} took #{Time.now - before}"
+end
+
+
 # Main part of this script...
 
 if ARGV.size != 1
@@ -86,13 +102,17 @@ if ARGV.size != 1
   exit
 end
 
+puts "Processing file #{ARGV[0]}..."
+
 processor = ChangesetProcessor.new
 
 parse_osc(ARGV[0]) do |changeset_id, xml|
-  puts "Processing changeset #{changeset_id}..."
+  puts "Processing changeset #{changeset_id} (xml size = #{xml.size})..."
 
   dump_xml_to_tmp_file(changeset_id, xml)
-  processor.generate_activities(changeset_id, get_from_xml(xml, 'timestamp'), get_from_xml(xml, 'uid'),
-    get_from_xml(xml, 'user'))
+
+  log_time ' generate_activities' do processor.generate_activities(changeset_id, get_from_xml(xml, 'timestamp'), get_from_xml(xml, 'uid'),
+    get_from_xml(xml, 'user')) end
+
   remove_tmp_file(changeset_id)
 end

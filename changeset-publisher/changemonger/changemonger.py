@@ -111,5 +111,5 @@ def changeset_sentence(cset):
     grouped_features = elements.feature_grouper(sorted_ef)
     sorted_features = elements.sort_grouped(grouped_features)
     english_list =  elements.grouped_to_english(sorted_features)
-    return "%s %s %s" % (user, action, english_list)
+    return "%s %s" % (action, english_list)
 

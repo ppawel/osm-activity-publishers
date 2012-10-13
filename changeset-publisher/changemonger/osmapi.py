@@ -37,7 +37,7 @@ def getNode(id, version = None):
         url, id, version))
     r = rs.get(url)
     r.raise_for_status()
-    return r.text
+    return r.content
 
 def getWay(id, version = None):
     id = str(id)
@@ -49,7 +49,7 @@ def getWay(id, version = None):
         url, id, version))
     r = rs.get(url)
     r.raise_for_status()
-    return r.text
+    return r.content
 
 def getRelation(id, version = None):
     id = str(id)
@@ -61,7 +61,7 @@ def getRelation(id, version = None):
         url, id, version))
     r = rs.get(url)
     r.raise_for_status()
-    return r.text
+    return r.content
 
 def getChangeset(id):
     id = str(id)
@@ -70,7 +70,7 @@ def getChangeset(id):
         url, id))
     r = rs.get(url)
     r.raise_for_status()
-    return r.text
+    return r.content
 
 def getChange(id):
     id = str(id)
@@ -79,7 +79,7 @@ def getChange(id):
         url, id))
     r = rs.get(url)
     r.raise_for_status()
-    return r.text
+    return r.content
 
 def getWaysforNode(id):
     id = str(id)
@@ -87,7 +87,7 @@ def getWaysforNode(id):
     logging.debug("Retrieving %s for node %s ways" % (url, id))
     r = rs.get(url)
     r.raise_for_status()
-    return r.text
+    return r.content
 
 def getRelationsforElement(type, id):
     type = str(type)
@@ -96,5 +96,5 @@ def getRelationsforElement(type, id):
     logging.debug("Retrieving %s for %s %s relations" % (url, type, id))
     r = rs.get(url)
     r.raise_for_status()
-    return r.text
+    return r.content
 

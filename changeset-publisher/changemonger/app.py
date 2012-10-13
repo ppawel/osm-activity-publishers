@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 
 ##  Changemonger: An OpenStreetMap change analyzer
 ##  Copyright (C) 2012 Serge Wroclawski
@@ -29,7 +29,7 @@ class FlaskWithHamlish(Flask):
     jinja_options = ImmutableDict(
         extensions=['jinja2.ext.autoescape', 'jinja2.ext.with_',
                     'hamlish_jinja.HamlishExtension'] )
-import argparse 
+import argparse
 app = FlaskWithHamlish(__name__)
 app.jinja_env.hamlish_mode = 'indented' # if you want to set hamlish settings
 app.jinja_env.globals.update(getsource=getsource)
@@ -141,7 +141,7 @@ def api_relation(id):
 def show_changeset(id):
     cset = helpers.get_changeset_or_404(id)
     sentence = changemonger.changeset_sentence(cset)
-    return jsonify(sentence=sentence)
+    return sentence
 
 if __name__ == '__main__':
     argparser = argparse.ArgumentParser(

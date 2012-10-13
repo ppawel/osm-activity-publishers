@@ -7,7 +7,7 @@ list of magic features
 
 """
 from features import BaseFeature
-
+import logging
 class OSMElement(BaseFeature):
     def __init__(self):
         BaseFeature.__init__(self, "unidentified object")
@@ -42,7 +42,7 @@ class UnidentifiedPolygon(BaseFeature):
         self.types = ['way']
 
     def match(self, ele):
-        return (self._typecheck(ele) and ele['nd'][0] == ele['nd'][-1])
+        return (self._typecheck(ele) and len(ele['nd']) > 1 and ele['nd'][0] == ele['nd'][-1])
 
 class Building(BaseFeature):
     def __init__(self):
@@ -57,16 +57,16 @@ class ManMade(BaseFeature):
     def __init__(self):
         BaseFeature.__init__(self, "man made feature")
         self.precision = 5
-        
+
     def match(self, ele):
         return ele['tags'].has_key('man_made')
-        
+
 
 class Shop(BaseFeature):
     def __init__(self):
         BaseFeature.__init__(self, "shop")
         self.precision = 6
-        
+
     def match(self, ele):
         return ele['tags'].has_key('shop')
 

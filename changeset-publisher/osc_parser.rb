@@ -10,7 +10,7 @@ def parse_osc(file_name)
       next
     end
 
-    next if !['node', 'way', 'relation'].include?(reader.name)
+    next if !['node', 'way', 'relation'].include?(reader.name) or reader.node_type != 1
 
     changeset_id = reader['changeset']
     next if !changeset_id
@@ -27,9 +27,9 @@ def parse_osc(file_name)
 
   changesets.each do |changeset_id, actions|
     xml = '<?xml version="1.0" encoding="UTF-8"?><osmChange>'
-    xml += "<create>#{actions['create'].join}</create>" if !actions['create'].empty?
-    xml += "<modify>#{actions['modify'].join}</modify>" if !actions['modify'].empty?
-    xml += "<delete>#{actions['delete'].join}</delete>" if !actions['delete'].empty?
+    actions['create'].each {|action| xml += "  <create>\n    #{action}\n  </create>\n"}
+    actions['modify'].each {|action| xml += "  <modify>\n    #{action}\n  </modify>\n"}
+    actions['delete'].each {|action| xml += "  <delete>\n    #{action}\n  </delete>\n"}
     xml += '</osmChange>'
     yield changeset_id, xml
   end

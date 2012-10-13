@@ -71,6 +71,7 @@ def getWaysforNode(id):
     logging.debug("Retrieving node %s ways" % id)
     dbcursor.execute("SELECT * FROM ways w INNER JOIN way_nodes wn ON (wn.way_id = w.id) WHERE wn.node_id = %s ORDER BY w.id" % id)
     rows = dbcursor.fetchall()
+    logging.debug(str(rows))
     return createWayXml(rows)
 
 def getRelationsforElement(type, id):
@@ -78,6 +79,7 @@ def getRelationsforElement(type, id):
     logging.debug("Retrieving relations for %s %s" % (type, str(id)))
     dbcursor.execute("SELECT * FROM relations r INNER JOIN relation_members rm ON (rm.relation_id = r.id) WHERE rm.member_id = %s ORDER BY rm.relation_id, rm.member_type, rm.member_id" % id)
     rows = dbcursor.fetchall()
+    logging.debug(str(rows))
     return createRelationsXml(rows)
 
 ## Caution: XML handling! Not pretty!
@@ -93,6 +95,7 @@ def createNodeXml(node_row):
     newdoc = createOsmDocument()
     node_el = newdoc.createElement('node')
     node_el.setAttribute('id', str(node_row['id']))
+    node_el.setAttribute('version', str(node_row['version']))
 
     for k, v in node_row['tags'].items():
         tag_el = newdoc.createElement('tag')
@@ -111,20 +114,28 @@ def createWayXml(way_rows):
 def createNodeWaysXml(way_rows):
     newdoc = createOsmDocument()
     appendWayXml(newdoc, newdoc.documentElement, way_rows)
+    print newdoc.toprettyxml(encoding = 'utf-8')
     return newdoc.toprettyxml(encoding = 'utf-8')
 
-def createRelationsXml(relation_rows):
+def createRelationsXml(all_relations_rows):
     newdoc = createOsmDocument()
 
-    if len(relation_rows) == 0:
+    if len(all_relations_rows) == 0:
       return newdoc.toprettyxml(encoding = 'utf-8')
 
-    id = relation_rows[0]['relation_id']
+    id = -1#relation_rows[0]['relation_id']
+    relation_rows = []
 
-    for row in relation_rows:
-      if id != row['relation_id']:
-        appendWayXml(newdoc, newdoc.documentElement, way_rows)
-    print newdoc.toprettyxml(encoding = 'utf-8')
+    for row in all_relations_rows:
+      if id != row['relation_id'] and id != -1:
+        appendRelationXml(newdoc, newdoc.documentElement, relation_rows)
+        relation_rows = []
+
+      id = row['relation_id']
+      relation_rows.append(row)
+
+    logging.debug(all_relations_rows)#newdoc.toprettyxml(encoding = 'utf-8')
+
     return newdoc.toprettyxml(encoding = 'utf-8')
 
 def createChangesetXml(id):
@@ -142,6 +153,7 @@ def appendWayXml(doc, el, way_rows):
 
     way_el = doc.createElement('way')
     way_el.setAttribute('id', str(way_rows[0]['id']))
+    way_el.setAttribute('version', str(way_rows[0]['version']))
 
     for node in way_rows:
         node_el = doc.createElement('nd')

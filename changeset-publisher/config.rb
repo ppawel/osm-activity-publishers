@@ -5,5 +5,5 @@ $config = {
   'postgis_db_user' => 'ppawel',
   'postgis_db_password' => 'aa',
 
-  'activity_server_url' => 'http://localhost:3000/'
+  'activity_server_url' => 'http://localhost:3333/'
 }

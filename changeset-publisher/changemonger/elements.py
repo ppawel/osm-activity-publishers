@@ -85,9 +85,6 @@ def feature_grouper(coll):
     # rewritten
     grouped = []
     while coll:
-        if len(coll[0][1]) == 0:
-            coll.remove(coll[0])
-            continue
 
         feature = coll[0][1][0]
         eles = [f[0] for f in coll if feature in f[1]]
@@ -249,7 +246,7 @@ def add_remote_ways(coll):
         logging.debug("Node %s has no remote ways or relations. Retrieving." %
                       str(node['id']))
         data = osmapi.getWaysforNode(node['id'])
-        xml = et.XML(data.encode('utf-8'))
+        xml = et.XML(data)
         ways = [parser.parseWay(way) for way in xml.findall('way')]
         for way in ways:
             logging.debug("Adding new way %s to collection" % way['id'])
@@ -281,7 +278,7 @@ def add_remote_relations(coll):
         if ele['tags'] or ele.get('_ways') or ele.get('_relations'):
             continue
         data = osmapi.getRelationsforElement(ele['type'], ele['id'])
-        xml = et.XML(data.encode('utf-8'))
+        xml = et.XML(data)
         rels = [parser.parseRelation(rel) for rel in xml.findall('relation')]
         for rel in rels:
             logging.debug("Adding relation %s to collection" % str(rel['id']))

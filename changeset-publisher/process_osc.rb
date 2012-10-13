@@ -52,7 +52,12 @@ class ChangesetProcessor
   end
 
   def get_description_from_changemonger(changeset_id)
-    IO.popen("./run_changemonger.sh #{changeset_id}") {|f| f.read}
+    require 'open-uri'
+    contents = open("http://localhost:5000/api/changeset/#{changeset_id}") {|io| io.read}
+    contents
+    #sentence = IO.popen("./run_changemonger.sh #{changeset_id}") {|f| f.read}
+    #status = $?
+    #File.open("/tmp/_#{changeset_id}.sentence", 'rb').read
   end
 end
 

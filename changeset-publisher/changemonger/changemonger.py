@@ -16,7 +16,6 @@
 
 """The core functionality of changemonger in a simple library"""
 import osmdbapi as osmapi
-
 from features import FeatureDB
 import xml.etree.ElementTree as et
 import parser

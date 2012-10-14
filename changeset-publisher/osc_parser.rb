@@ -26,11 +26,13 @@ def parse_osc(file_name)
   end
 
   changesets.each do |changeset_id, actions|
-    xml = '<?xml version="1.0" encoding="UTF-8"?><osmChange>'
-    actions['create'].each {|action| xml += "  <create>\n    #{action}\n  </create>\n"}
-    actions['modify'].each {|action| xml += "  <modify>\n    #{action}\n  </modify>\n"}
-    actions['delete'].each {|action| xml += "  <delete>\n    #{action}\n  </delete>\n"}
-    xml += '</osmChange>'
-    yield changeset_id, xml
+    create_xml = ''
+    modify_xml = ''
+    delete_xml = ''
+    actions['create'].each {|action| create_xml += "  <create>\n    #{action}\n  </create>\n"}
+    actions['modify'].each {|action| modify_xml += "  <modify>\n    #{action}\n  </modify>\n"}
+    actions['delete'].each {|action| delete_xml += "  <delete>\n    #{action}\n  </delete>\n"}
+    xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><osmChange>#{create_xml}#{modify_xml}#{delete_xml}</osmChange>"
+    yield changeset_id, xml, create_xml, modify_xml, delete_xml
   end
 end

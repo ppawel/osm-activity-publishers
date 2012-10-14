@@ -2,6 +2,7 @@ require './config'
 require './osc_parser'
 
 require 'httparty'
+require 'open-uri'
 require 'pg'
 
 class ChangesetProcessor
@@ -20,8 +21,8 @@ class ChangesetProcessor
       :password => $config['postgis_db_password'])
   end
 
-  def generate_activities(changeset_id, changeset_tstamp, user_id, user_name)
-    geom = get_changeset_geom(changeset_id)
+  def generate_activities(changeset_id, changeset_tstamp, user_id, user_name, xml)
+    geom = get_geom_from_xml(xml[:create], xml[:modify], xml[:delete])
 
     if geom.nil?
       puts " No geometry for the changeset found in the database, ignoring"
@@ -40,17 +41,6 @@ class ChangesetProcessor
     #puts response.inspect
   end
 
-  def get_changeset(changeset_id)
-    sql = eval_file('get_changeset.sql', binding)
-    @conn.query(sql).collect {|row| Hash[row]}
-  end
-
-  def get_changeset_geom(changeset_id)
-    sql = eval_file('get_changeset.sql', binding)
-    sql = "SELECT ST_Union(changeset_members.geom) FROM (#{sql}) AS changeset_members"
-    @conn.query(sql).getvalue(0, 0)
-  end
-
   protected
 
   def eval_file(file_name, b)
@@ -58,12 +48,53 @@ class ChangesetProcessor
   end
 
   def get_description_from_changemonger(changeset_id)
-    require 'open-uri'
-    contents = open("http://localhost:5000/api/changeset/#{changeset_id}") {|io| io.read}
-    contents
-    #sentence = IO.popen("./run_changemonger.sh #{changeset_id}") {|f| f.read}
-    #status = $?
-    #File.open("/tmp/_#{changeset_id}.sentence", 'rb').read
+    open("http://localhost:5000/api/changeset/#{changeset_id}") {|io| io.read}
+  end
+
+  def get_node_geom(id)
+    result = @conn.query("SELECT ST_X(geom), ST_Y(geom) FROM nodes WHERE id = #{id}")
+    [result.getvalue(0, 0), result.getvalue(0, 1)] if result.ntuples > 0
+  end
+
+  def get_geom_geom(geom)
+    result = @conn.query("SELECT ST_X('#{geom}'::geometry), ST_Y('#{geom}'::geometry)")
+    [result.getvalue(0, 0), result.getvalue(0, 1)]
+  end
+
+  def get_way_geom(id)
+    points = []
+    result = @conn.query("SELECT ST_DumpPoints(linestring) AS points FROM ways WHERE id = #{id}")
+    result.each do |row|
+      row['points'].match(/\,(.*?)\)/) {|m| points << get_geom_geom(m[1])}
+    end
+    points
+  end
+
+  def points_to_wkt(points)
+    s = points.reduce('') {|total, p| total + "#{p[0]} #{p[0]},"}[0..-2]
+    "MULTIPOINT(#{s})"
+  end
+
+  def get_geom_from_xml(create_xml, modify_xml, delete_xml)
+    points = []
+    # Geometry for new and deleted nodes is in the XML - no need for database lookup.
+    create_xml.scan(/<node.*?lat="(.*?)" lon="(.*?)"/).each {|m| points << [m[0].to_f, m[1].to_f]}
+    delete_xml.scan(/'<node.*?lat="(.*?)" lon="(.*?)"/).each {|m| points << [m[0].to_f, m[1].to_f]}
+
+    # For modified nodes let's take both old and new coordinates.
+    modify_xml.scan('<node.*?id="(.*?).*?lat="(.*?)" lon="(.*?)""').each do |m|
+      points << get_node_geom(m[0].to_i)
+      points << [m[1].to_f, m[2].to_f]
+    end
+
+    (create_xml + modify_xml + delete_xml).scan(/<way.*?id="(.*?)"/m).each do |m|
+      points += get_way_geom(m[0].to_i)
+    end
+
+    if !points.empty?
+      wkt = points_to_wkt(points.select {|p| p}.uniq)
+      @conn.query("SELECT ST_GeomFromText('#{wkt}')").getvalue(0, 0)
+    end
   end
 end
 
@@ -94,7 +125,6 @@ def log_time(name)
   puts "#{name} took #{Time.now - before}"
 end
 
-
 # Main part of this script...
 
 if ARGV.size != 1
@@ -106,13 +136,13 @@ puts "Processing file #{ARGV[0]}..."
 
 processor = ChangesetProcessor.new
 
-parse_osc(ARGV[0]) do |changeset_id, xml|
+parse_osc(ARGV[0]) do |changeset_id, xml, create_xml, modify_xml, delete_xml|
   puts "Processing changeset #{changeset_id} (xml size = #{xml.size})..."
 
   dump_xml_to_tmp_file(changeset_id, xml)
 
   log_time ' generate_activities' do processor.generate_activities(changeset_id, get_from_xml(xml, 'timestamp'), get_from_xml(xml, 'uid'),
-    get_from_xml(xml, 'user')) end
+    get_from_xml(xml, 'user'), {:create => create_xml, :modify => modify_xml, :delete => delete_xml}) end
 
   remove_tmp_file(changeset_id)
 end

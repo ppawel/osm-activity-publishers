@@ -139,6 +139,11 @@ processor = ChangesetProcessor.new
 parse_osc(ARGV[0]) do |changeset_id, xml, create_xml, modify_xml, delete_xml|
   puts "Processing changeset #{changeset_id} (xml size = #{xml.size})..."
 
+  if xml.size > $config['xml_size_limit']
+    puts " Changeset too large, ignoring"
+    next
+  end
+
   dump_xml_to_tmp_file(changeset_id, xml)
 
   log_time ' generate_activities' do processor.generate_activities(changeset_id, get_from_xml(xml, 'timestamp'), get_from_xml(xml, 'uid'),

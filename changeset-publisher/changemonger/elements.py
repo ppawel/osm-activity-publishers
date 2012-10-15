@@ -41,7 +41,7 @@ def common_name(ele):
         return("%u %u" % (a, ele['tags']['brand']))
     elif ele['tags'].has_key('operator'):
         a = p.a(ele['tags']['operator'])
-        return("%u %u" % (a, ele['tags']['operator']))
+        return("%s %s" % (a, ele['tags']['operator']))
     elif ele['tags'].has_key('name'):
         return ele['tags']['name']
     else:
@@ -141,9 +141,11 @@ def remove_unnecessary_items(coll):
     tagless but have either a way reference or a relation reference
     """
     l = []
+    n = 0
     for ele in coll:
         if not ele['tags']:
             if ele.has_key('_ways') or ele.has_key('_relations'):
+                n = n + 1
                 continue
         else:
             l.append(ele)

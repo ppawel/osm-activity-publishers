@@ -1,7 +1,8 @@
 Changeset Activity Publisher
 ============================
 
-This publisher interfaces with the OpenStreetMap Activity Server and publishes changeset activities.
+This publisher interfaces with the OpenStreetMap Activity Server and publishes changeset activities. It is integrated
+with Changemonger in order to produce user-friendly changeset descriptions.
 
 Requirements
 ============
@@ -17,13 +18,8 @@ The `config.rb` file must be used to configure database connection parameters an
 Usage
 =====
 
-Processing a single changeset
------------------------------
-
-The `process_changeset.rb` script can be used to fetch changeset data from the database by id and generate activity based on that data. The activity JSON document is then sent to the activity server.
+The `process_osc.sh` script can be used to process a file in the standard OsmChange format. The publisher goes through the file changeset by changeset and produces activities. The activity JSON document is then sent to the activity server.
 
 The script can be executed as follows:
 
-`process_changeset.rb <changeset_id>`
-
-It will output the JSON document that is sent to the server and server's response.
+`process_osc.sh <file_name>`

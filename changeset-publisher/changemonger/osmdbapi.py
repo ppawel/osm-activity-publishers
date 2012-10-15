@@ -172,18 +172,8 @@ def appendRelationXml(doc, el, relation_rows):
     if len(relation_rows) == 0:
       return
 
-    way_el = doc.createElement('way')
-    way_el.setAttribute('id', str(way_rows[0]['id']))
+    relation_el = doc.createElement('relation')
+    relation_el.setAttribute('id', str(relation_rows[0]['id']))
+    relation_el.setAttribute('version', str(relation_rows[0]['version']))
 
-    for node in way_rows:
-        node_el = doc.createElement('nd')
-        node_el.setAttribute('ref', str(node['id']))
-        way_el.appendChild(node_el)
-
-    for k, v in way_rows[0]['tags'].items():
-        tag_el = doc.createElement('tag')
-        tag_el.setAttribute('k', k)
-        tag_el.setAttribute('v', v)
-        way_el.appendChild(tag_el)
-
-    el.appendChild(way_el)
+    el.appendChild(relation_el)

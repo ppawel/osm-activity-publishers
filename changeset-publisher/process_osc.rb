@@ -71,7 +71,7 @@ class ChangesetProcessor
   end
 
   def points_to_wkt(points)
-    s = points.reduce('') {|total, p| total + "#{p[0]} #{p[0]},"}[0..-2]
+    s = points.reduce('') {|total, p| total + "#{p[0]} #{p[1]},"}[0..-2]
     "MULTIPOINT(#{s})"
   end
 
@@ -79,7 +79,7 @@ class ChangesetProcessor
     points = []
     # Geometry for new and deleted nodes is in the XML - no need for database lookup.
     create_xml.scan(/<node.*?lat="(.*?)" lon="(.*?)"/).each {|m| points << [m[0].to_f, m[1].to_f]}
-    delete_xml.scan(/'<node.*?lat="(.*?)" lon="(.*?)"/).each {|m| points << [m[0].to_f, m[1].to_f]}
+    delete_xml.scan(/<node.*?lat="(.*?)" lon="(.*?)"/).each {|m| points << [m[0].to_f, m[1].to_f]}
 
     # For modified nodes let's take both old and new coordinates.
     modify_xml.scan('<node.*?id="(.*?).*?lat="(.*?)" lon="(.*?)""').each do |m|
@@ -93,7 +93,7 @@ class ChangesetProcessor
 
     if !points.empty?
       wkt = points_to_wkt(points.select {|p| p}.uniq)
-      @conn.query("SELECT ST_GeomFromText('#{wkt}')").getvalue(0, 0)
+      @conn.query("SELECT ST_SetSRID(ST_GeomFromText('#{wkt}'), 4326)").getvalue(0, 0)
     end
   end
 end

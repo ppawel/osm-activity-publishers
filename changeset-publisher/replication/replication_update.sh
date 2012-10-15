@@ -22,7 +22,7 @@ if [ "$STATUS" != "0" ]; then
 fi
 
 cd replication
-osmosis --read-xml-change data/current.osc --write-pgsql-change authFile=authFile
+osmosis --read-xml-change data/current.osc --log-progress --write-pgsql-change authFile=authFile
 
 if [ "$?" != "0" ]; then
   echo "Failed to apply current.osc to the database!"

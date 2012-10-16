@@ -21,12 +21,14 @@ import psycopg2
 import psycopg2.extensions
 import psycopg2.extras
 
+from config import __CONFIG
+
 import logging
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)-15s %(message)s')
 
 try:
-    dbconn = psycopg2.connect("dbname='osmdb' user='ppawel' host='localhost' password='aa'")
+    dbconn = psycopg2.connect(__CONFIG["connection_string"])
 except:
     raise Exception("Unable to connect to the database")
 

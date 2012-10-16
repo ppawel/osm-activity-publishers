@@ -52,12 +52,12 @@ class ChangesetProcessor
   end
 
   def get_node_geom(id)
-    result = @conn.query("SELECT ST_X(geom), ST_Y(geom) FROM nodes WHERE id = #{id}")
+    result = @conn.query("SELECT ST_Y(geom), ST_X(geom) FROM nodes WHERE id = #{id}")
     [result.getvalue(0, 0), result.getvalue(0, 1)] if result.ntuples > 0
   end
 
   def get_geom_geom(geom)
-    result = @conn.query("SELECT ST_X('#{geom}'::geometry), ST_Y('#{geom}'::geometry)")
+    result = @conn.query("SELECT ST_Y('#{geom}'::geometry), ST_X('#{geom}'::geometry)")
     [result.getvalue(0, 0), result.getvalue(0, 1)]
   end
 
@@ -78,13 +78,13 @@ class ChangesetProcessor
   def get_geom_from_xml(create_xml, modify_xml, delete_xml)
     points = []
     # Geometry for new and deleted nodes is in the XML - no need for database lookup.
-    create_xml.scan(/<node.*?lat="(.*?)" lon="(.*?)"/).each {|m| points << [m[0].to_f, m[1].to_f]}
-    delete_xml.scan(/<node.*?lat="(.*?)" lon="(.*?)"/).each {|m| points << [m[0].to_f, m[1].to_f]}
+    create_xml.scan(/<node.*?lat="(.*?)" lon="(.*?)"/).each {|m| points << [m[1].to_f, m[0].to_f]}
+    delete_xml.scan(/<node.*?lat="(.*?)" lon="(.*?)"/).each {|m| points << [m[1].to_f, m[0].to_f]}
 
     # For modified nodes let's take both old and new coordinates.
     modify_xml.scan('<node.*?id="(.*?).*?lat="(.*?)" lon="(.*?)""').each do |m|
       points << get_node_geom(m[0].to_i)
-      points << [m[1].to_f, m[2].to_f]
+      points << [m[2].to_f, m[1].to_f]
     end
 
     (create_xml + modify_xml + delete_xml).scan(/<way.*?id="(.*?)"/m).each do |m|

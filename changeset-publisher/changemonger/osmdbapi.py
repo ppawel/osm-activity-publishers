@@ -23,9 +23,7 @@ import psycopg2.extras
 
 import logging
 
-logging.basicConfig(level=logging.DEBUG)
-
-CHANGESETS_DIR = '/home/ppawel/src/changesets/'
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)-15s %(message)s')
 
 try:
     dbconn = psycopg2.connect("dbname='osmdb' user='ppawel' host='localhost' password='aa'")
@@ -44,6 +42,7 @@ def getNode(id, version = None):
     logging.debug("Retrieving node %s version %s" % (id, version))
     dbcursor.execute("SELECT * FROM nodes WHERE id = %s" % id)
     row = dbcursor.fetchone()
+    logging.debug("getNode(%d): %s" % (int(id), str(rows)))
     return createNodeXml(row)
 
 def getWay(id, version = None):
@@ -51,6 +50,7 @@ def getWay(id, version = None):
     logging.debug("Retrieving way %s version %s" % (id, version))
     dbcursor.execute("SELECT * FROM ways w INNER JOIN way_nodes wn ON (wn.way_id = w.id) WHERE w.id = %s" % id)
     rows = dbcursor.fetchall()
+    logging.debug("getWay(%d): %s" % (int(id), str(rows)))
     return createWayXml(rows)
 
 def getRelation(id, version = None):
@@ -58,12 +58,15 @@ def getRelation(id, version = None):
     logging.debug("Retrieving relation %s version %s" % (id, version))
     dbcursor.execute("SELECT * FROM relations r INNER JOIN relation_members rm ON (rm.relation_id = r.id) WHERE r.id = %s" % id)
     rows = dbcursor.fetchall()
+    logging.debug("getRelation(%d): %s" % (int(id), str(rows)))
     return createRelationXml(rows)
 
 def getChangeset(id):
+    logging.debug("getChangeset(%d)" % int(id))
     return createChangesetXml(id)
 
 def getChange(id):
+    logging.debug("getChange(%d)" % int(id))
     return open("/tmp/_" + str(id) + ".osc").read()
 
 def getWaysforNode(id):
@@ -71,7 +74,7 @@ def getWaysforNode(id):
     logging.debug("Retrieving node %s ways" % id)
     dbcursor.execute("SELECT * FROM ways w INNER JOIN way_nodes wn ON (wn.way_id = w.id) WHERE wn.node_id = %s ORDER BY w.id" % id)
     rows = dbcursor.fetchall()
-    logging.debug(str(rows))
+    logging.debug("getWaysforNode(%d): %s" % (int(id), str(rows)))
     return createWayXml(rows)
 
 def getRelationsforElement(type, id):
@@ -79,7 +82,7 @@ def getRelationsforElement(type, id):
     logging.debug("Retrieving relations for %s %s" % (type, str(id)))
     dbcursor.execute("SELECT * FROM relations r INNER JOIN relation_members rm ON (rm.relation_id = r.id) WHERE rm.member_id = %s ORDER BY rm.relation_id, rm.member_type, rm.member_id" % id)
     rows = dbcursor.fetchall()
-    logging.debug(str(rows))
+    logging.debug("getRelationsforElement(%d): %s" % (int(id), str(rows)))
     return createRelationsXml(rows)
 
 ## Caution: XML handling! Not pretty!
@@ -114,7 +117,6 @@ def createWayXml(way_rows):
 def createNodeWaysXml(way_rows):
     newdoc = createOsmDocument()
     appendWayXml(newdoc, newdoc.documentElement, way_rows)
-    print newdoc.toprettyxml(encoding = 'utf-8')
     return newdoc.toprettyxml(encoding = 'utf-8')
 
 def createRelationsXml(all_relations_rows):

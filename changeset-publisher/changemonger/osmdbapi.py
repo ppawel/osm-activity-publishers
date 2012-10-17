@@ -42,17 +42,17 @@ psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
 def getNode(id, version = None):
     id = str(id)
     logging.debug("Retrieving node %s version %s" % (id, version))
-    dbcursor.execute("SELECT * FROM nodes WHERE id = %s" % id)
+    dbcursor.execute("SELECT id, version, tags FROM nodes WHERE id = %s" % id)
     row = dbcursor.fetchone()
-    logging.debug("getNode(%d): %s" % (int(id), str(rows)))
+    logging.debug("getNode(%d): %d" % (int(id), len(rows)))
     return createNodeXml(row)
 
 def getWay(id, version = None):
     id = str(id)
     logging.debug("Retrieving way %s version %s" % (id, version))
-    dbcursor.execute("SELECT * FROM ways w INNER JOIN way_nodes wn ON (wn.way_id = w.id) WHERE w.id = %s" % id)
+    dbcursor.execute("SELECT w.id, w.version, w.tags, wn.node_id FROM ways w INNER JOIN way_nodes wn ON (wn.way_id = w.id) WHERE w.id = %s" % id)
     rows = dbcursor.fetchall()
-    logging.debug("getWay(%d): %s" % (int(id), str(rows)))
+    logging.debug("getWay(%d): %d" % (int(id), len(rows)))
     return createWayXml(rows)
 
 def getRelation(id, version = None):
@@ -60,7 +60,7 @@ def getRelation(id, version = None):
     logging.debug("Retrieving relation %s version %s" % (id, version))
     dbcursor.execute("SELECT * FROM relations r INNER JOIN relation_members rm ON (rm.relation_id = r.id) WHERE r.id = %s" % id)
     rows = dbcursor.fetchall()
-    logging.debug("getRelation(%d): %s" % (int(id), str(rows)))
+    logging.debug("getRelation(%d): %d" % (int(id), len(rows)))
     return createRelationXml(rows)
 
 def getChangeset(id):
@@ -74,9 +74,9 @@ def getChange(id):
 def getWaysforNode(id):
     id = str(id)
     logging.debug("Retrieving node %s ways" % id)
-    dbcursor.execute("SELECT * FROM ways w INNER JOIN way_nodes wn ON (wn.way_id = w.id) WHERE wn.node_id = %s ORDER BY w.id" % id)
+    dbcursor.execute("SELECT w.id, w.version, w.tags, wn.node_id FROM ways w INNER JOIN way_nodes wn ON (wn.way_id = w.id) WHERE wn.node_id = %s ORDER BY w.id" % id)
     rows = dbcursor.fetchall()
-    logging.debug("getWaysforNode(%d): %s" % (int(id), str(rows)))
+    logging.debug("getWaysforNode(%d): %d" % (int(id), len(rows)))
     return createWayXml(rows)
 
 def getRelationsforElement(type, id):
@@ -84,7 +84,7 @@ def getRelationsforElement(type, id):
     logging.debug("Retrieving relations for %s %s" % (type, str(id)))
     dbcursor.execute("SELECT * FROM relations r INNER JOIN relation_members rm ON (rm.relation_id = r.id) WHERE rm.member_id = %s ORDER BY rm.relation_id, rm.member_type, rm.member_id" % id)
     rows = dbcursor.fetchall()
-    logging.debug("getRelationsforElement(%d): %s" % (int(id), str(rows)))
+    logging.debug("getRelationsforElement(%d): %d" % (int(id), len(rows)))
     return createRelationsXml(rows)
 
 ## Caution: XML handling! Not pretty!
@@ -161,7 +161,7 @@ def appendWayXml(doc, el, way_rows):
 
     for node in way_rows:
         node_el = doc.createElement('nd')
-        node_el.setAttribute('ref', str(node['id']))
+        node_el.setAttribute('ref', str(node['node_id']))
         way_el.appendChild(node_el)
 
     for k, v in way_rows[0]['tags'].items():

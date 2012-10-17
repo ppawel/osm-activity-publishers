@@ -10,7 +10,7 @@ fi
 echo "Publishing activities from current.osc..."
 
 cd ../..
-./process_osc.sh replication/data/current.osc 2> publisher.log
+./process_osc.rb replication/data/current.osc 2> publisher.log
 
 STATUS=$?
 
@@ -22,7 +22,7 @@ if [ "$STATUS" != "0" ]; then
 fi
 
 cd replication
-osmosis --read-xml-change data/current.osc --log-progress --write-pgsql-change authFile=authFile
+osmosis --read-xml-change data/current.osc --sort-change --simc --buffer-change bufferCapacity=6666 --log-progress-change --write-pgsql-change authFile=authFile
 
 if [ "$?" != "0" ]; then
   echo "Failed to apply current.osc to the database!"

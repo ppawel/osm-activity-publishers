@@ -10,7 +10,7 @@ fi
 echo "Publishing activities from current.osc..."
 
 cd ../..
-./process_osc.rb replication/data/current.osc 2> publisher.log
+ruby ./process_osc.rb replication/data/current.osc 2> publisher.log
 
 STATUS=$?
 
